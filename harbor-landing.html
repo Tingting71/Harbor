@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="zh" data-lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harbor — A calm harbor for your open tabs</title>
+<style>
+  :root{
+    --canvas:#F3F4F7;
+    --canvas-alt:#EAECF2;
+    --panel:#FFFFFF;
+    --ink:#12131A;
+    --ink-soft:#5B5F72;
+    --ink-faint:#8A8EA3;
+    --line:#DEE1E9;
+    --brand:#4438F2;
+    --brand-ink:#FFFFFF;
+    --brand-soft:#E9E7FE;
+
+    --cat-research:#2F6FED;
+    --cat-work:#16A34A;
+    --cat-ai:#8B5CF6;
+    --cat-shop:#E08E00;
+    --cat-ent:#F0475C;
+
+    --font-display:-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    --font-body:-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    --font-mono:ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+    --radius-sm:8px;
+    --radius-md:14px;
+    --radius-lg:24px;
+
+    --shadow-card: 0 1px 2px rgba(18,19,26,.05), 0 16px 36px -18px rgba(18,19,26,.22);
+    --shadow-lift: 0 2px 4px rgba(18,19,26,.06), 0 28px 56px -20px rgba(18,19,26,.28);
+
+    --space-1:.5rem;
+    --space-2:1rem;
+    --space-3:1.5rem;
+    --space-4:2rem;
+    --space-5:3rem;
+    --space-6:4.5rem;
+    --space-7:6.5rem;
+  }
+
+  /* system font stack renders both scripts natively — no per-language override needed */
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--canvas);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-size:16px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  img,svg{display:block;max-width:100%;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding-inline:clamp(20px, 4vw, 48px);
+  }
+
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:.5em;
+    font-family:var(--font-mono);
+    font-size:.78rem;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--brand);
+    font-weight:600;
+  }
+  .eyebrow::before{
+    content:"";
+    width:6px;height:6px;border-radius:2px;
+    background:var(--brand);
+    display:inline-block;
+  }
+
+  h1,h2,h3{
+    font-family:var(--font-display);
+    font-weight:700;
+    letter-spacing:-.01em;
+    margin:0;
+  }
+  html[data-lang="zh"] h1, html[data-lang="zh"] h2, html[data-lang="zh"] h3{
+    letter-spacing:0;
+  }
+
+  p{margin:0;}
+
+  /* ---------- NAV ---------- */
+  .nav{
+    position:sticky;
+    top:0;
+    z-index:100;
+    background:rgba(243,244,247,.78);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-inner{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding-block:14px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:.55rem;
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:1.15rem;
+    text-decoration:none;
+    color:var(--ink);
+  }
+  .brand-mark{width:26px;height:26px;flex:none;}
+  .badge-dev{
+    font-family:var(--font-mono);
+    font-size:.68rem;
+    letter-spacing:.04em;
+    color:var(--ink-soft);
+    background:var(--canvas-alt);
+    border:1px solid var(--line);
+    padding:3px 9px;
+    border-radius:999px;
+    margin-left:.4rem;
+    white-space:nowrap;
+  }
+  .nav-links{
+    display:flex;
+    gap:var(--space-4);
+    list-style:none;
+    margin:0;padding:0;
+  }
+  .nav-links a{
+    text-decoration:none;
+    font-size:.92rem;
+    font-weight:500;
+    color:var(--ink-soft);
+    transition:color .15s ease;
+  }
+  .nav-links a:hover{color:var(--ink);}
+  .nav-right{display:flex;align-items:center;gap:.75rem;}
+  .lang-toggle{
+    font-family:var(--font-mono);
+    font-size:.8rem;
+    font-weight:600;
+    background:var(--panel);
+    border:1px solid var(--line);
+    color:var(--ink);
+    padding:7px 12px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .lang-toggle:hover{border-color:var(--brand);}
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:.5rem;
+    font-weight:600;
+    font-size:.92rem;
+    text-decoration:none;
+    border:none;
+    cursor:pointer;
+    padding:11px 20px;
+    border-radius:999px;
+    transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .btn-primary{background:var(--brand);color:var(--brand-ink);box-shadow:0 10px 24px -10px rgba(68,56,242,.55);}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 14px 30px -10px rgba(68,56,242,.6);}
+  .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--ink);}
+  .nav .btn{padding:9px 16px;font-size:.85rem;}
+
+  @media (max-width:860px){
+    .nav-links{display:none;}
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    padding-block: var(--space-6) var(--space-7);
+    overflow:hidden;
+  }
+  .hero-blobs{
+    position:absolute;inset:0;
+    z-index:0;
+    pointer-events:none;
+  }
+  .blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.22;}
+  .hero-inner{position:relative;z-index:1;text-align:center;max-width:760px;margin:0 auto;}
+  .hero h1{
+    font-size:clamp(2.4rem, 5.4vw, 4.1rem);
+    line-height:1.05;
+    margin-top:var(--space-3);
+  }
+  .hero h1 .line{display:block;}
+  .hero h1 .accent{color:var(--brand);}
+  .hero-sub{
+    margin:var(--space-3) auto 0;
+    max-width:560px;
+    color:var(--ink-soft);
+    font-size:1.08rem;
+  }
+  .hero-ctas{
+    display:flex;
+    gap:.9rem;
+    justify-content:center;
+    margin-top:var(--space-4);
+    flex-wrap:wrap;
+  }
+  .hero-ctas .btn{padding:13px 26px;font-size:.98rem;}
+
+  .stat-row{
+    display:flex;
+    justify-content:center;
+    gap:var(--space-5);
+    margin-top:var(--space-6);
+    flex-wrap:wrap;
+  }
+  .stat{text-align:center;}
+  .stat-value{font-family:var(--font-mono);font-weight:600;font-size:1.5rem;color:var(--ink);}
+  .stat-label{font-size:.82rem;color:var(--ink-faint);margin-top:.2rem;}
+
+  /* ---------- HERO STAGE (signature chaos->order) ---------- */
+  .hero-stage{
+    position:relative;
+    z-index:1;
+    margin-top:var(--space-6);
+    display:grid;
+    grid-template-columns:repeat(5, 1fr);
+    gap:14px;
+    max-width:980px;
+    margin-inline:auto;
+    min-height:230px;
+  }
+  .stage-col{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    align-items:stretch;
+  }
+  .stage-col-label{
+    font-family:var(--font-mono);
+    font-size:.68rem;
+    font-weight:600;
+    color:var(--ink-faint);
+    text-align:center;
+    padding-bottom:2px;
+    letter-spacing:.02em;
+  }
+  .chip{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px 10px 3px 3px;
+    padding:9px 10px;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:var(--shadow-card);
+    transition:transform .9s cubic-bezier(.16,1,.3,1);
+    will-change:transform;
+  }
+  .chip-dot{width:8px;height:8px;border-radius:50%;flex:none;}
+  .chip-label{font-size:.74rem;color:var(--ink-soft);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+  .hero-stage.is-scattered .chip{
+    transform:translate(var(--rx,0), var(--ry,0)) rotate(var(--rot,0deg));
+  }
+
+  @media (max-width:860px){
+    .hero-stage{grid-template-columns:repeat(2,1fr);}
+  }
+
+  /* ---------- SECTION shells ---------- */
+  section{padding-block:var(--space-7);}
+  .section-alt{background:var(--canvas-alt);}
+  .section-head{max-width:640px;margin-bottom:var(--space-5);}
+  .section-head.center{margin-inline:auto;text-align:center;}
+  .section-head h2{
+    font-size:clamp(1.8rem, 3.4vw, 2.6rem);
+    margin-top:var(--space-2);
+    line-height:1.12;
+  }
+  .section-head p{
+    margin-top:var(--space-2);
+    color:var(--ink-soft);
+    font-size:1.03rem;
+  }
+
+  /* ---------- PROBLEM cards ---------- */
+  .grid-3{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:var(--space-3);
+  }
+  .problem-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius-md);
+    padding:var(--space-3);
+    box-shadow:var(--shadow-card);
+  }
+  .problem-num{
+    font-family:var(--font-mono);
+    color:var(--ink-faint);
+    font-size:.78rem;
+    font-weight:600;
+  }
+  .problem-card h3{font-size:1.15rem;margin-top:.6rem;}
+  .problem-card p{margin-top:.5rem;color:var(--ink-soft);font-size:.95rem;}
+
+  @media (max-width:860px){ .grid-3{grid-template-columns:1fr;} }
+
+  /* ---------- WORKFLOW steps ---------- */
+  .flow{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:var(--space-2);
+    position:relative;
+  }
+  .flow::before{
+    content:"";
+    position:absolute;
+    top:22px;left:0;right:0;
+    height:1px;
+    background:var(--line);
+    z-index:0;
+  }
+  .flow-step{position:relative;z-index:1;}
+  .flow-num{
+    width:44px;height:44px;
+    border-radius:12px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-weight:600;
+    color:var(--brand);
+    box-shadow:var(--shadow-card);
+  }
+  .flow-step h3{font-size:1rem;margin-top:var(--space-2);}
+  .flow-step p{font-size:.87rem;color:var(--ink-soft);margin-top:.4rem;}
+
+  @media (max-width:860px){
+    .flow{grid-template-columns:1fr;gap:var(--space-3);}
+    .flow::before{left:22px;top:0;bottom:0;width:1px;height:auto;right:auto;}
+  }
+
+  .trigger-row{
+    margin-top:var(--space-6);
+    display:grid;
+    grid-template-columns:repeat(3,1fr) auto;
+    gap:var(--space-2);
+    align-items:center;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    padding:var(--space-3);
+    box-shadow:var(--shadow-card);
+  }
+  .trigger-item{display:flex;align-items:center;gap:.7rem;}
+  .trigger-ico{
+    width:38px;height:38px;border-radius:10px;
+    background:var(--brand-soft);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--brand);flex:none;
+  }
+  .trigger-title{font-size:.88rem;font-weight:600;}
+  .trigger-sub{font-size:.8rem;color:var(--ink-soft);font-family:var(--font-mono);}
+  .trigger-arrow{color:var(--ink-faint);font-size:1.4rem;justify-self:center;}
+
+  @media (max-width:860px){
+    .trigger-row{grid-template-columns:1fr;}
+    .trigger-arrow{display:none;}
+  }
+
+  .result-banner{
+    margin-top:var(--space-5);
+    text-align:center;
+    background:var(--ink);
+    color:#fff;
+    border-radius:var(--radius-lg);
+    padding:var(--space-4);
+  }
+  .result-banner h3{font-family:var(--font-display);font-size:1.5rem;}
+  .result-banner p{margin-top:.5rem;color:#B9BBCB;font-family:var(--font-mono);font-size:.85rem;}
+
+  /* ---------- EXAMPLE RESULT panel ---------- */
+  .browser-frame{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-lift);
+    overflow:hidden;
+    margin-top:var(--space-5);
+  }
+  .browser-bar{
+    display:flex;align-items:center;gap:.4rem;
+    padding:12px 16px;
+    background:var(--canvas-alt);
+    border-bottom:1px solid var(--line);
+  }
+  .browser-dot{width:9px;height:9px;border-radius:50%;background:var(--line);}
+  .browser-addr{
+    margin-left:10px;
+    font-family:var(--font-mono);
+    font-size:.75rem;
+    color:var(--ink-faint);
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:3px 10px;
+  }
+  .result-groups{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:1px;
+    background:var(--line);
+  }
+  .result-group{background:var(--panel);padding:var(--space-3);}
+  .result-group-head{display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem;}
+  .result-group-head .chip-dot{width:9px;height:9px;}
+  .result-group-head span{font-weight:600;font-size:.92rem;}
+  .result-count{
+    margin-left:auto;
+    font-family:var(--font-mono);
+    font-size:.72rem;
+    color:var(--ink-faint);
+    background:var(--canvas-alt);
+    padding:2px 8px;
+    border-radius:999px;
+  }
+  .result-tab-item{
+    font-size:.82rem;
+    color:var(--ink-soft);
+    padding:6px 0;
+    border-top:1px dashed var(--line);
+  }
+  .result-tab-item:first-of-type{border-top:none;}
+  .result-tab-item b{color:var(--ink);font-weight:600;}
+
+  @media (max-width:860px){ .result-groups{grid-template-columns:1fr;} }
+
+  /* ---------- VISION ---------- */
+  .source-chips{
+    display:flex;flex-wrap:wrap;gap:.55rem;
+    margin-top:var(--space-3);
+  }
+  .source-chip{
+    font-size:.82rem;
+    font-family:var(--font-mono);
+    color:var(--ink-soft);
+    background:var(--panel);
+    border:1px solid var(--line);
+    padding:6px 12px;
+    border-radius:999px;
+  }
+  .flow6{
+    margin-top:var(--space-5);
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:var(--space-2);
+  }
+  .flow6-step{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius-md);
+    padding:var(--space-2);
+    box-shadow:var(--shadow-card);
+  }
+  .flow6-num{
+    font-family:var(--font-mono);
+    font-size:.72rem;
+    color:var(--brand);
+    font-weight:700;
+  }
+  .flow6-step h3{font-size:.92rem;margin-top:.5rem;}
+  .flow6-step p{font-size:.8rem;color:var(--ink-soft);margin-top:.4rem;line-height:1.4;}
+
+  @media (max-width:1020px){ .flow6{grid-template-columns:repeat(3,1fr);} }
+  @media (max-width:640px){ .flow6{grid-template-columns:1fr;} }
+
+  /* ---------- DASHBOARD PREVIEW ---------- */
+  .dash-shell{
+    margin-top:var(--space-5);
+    background:#0F1016;
+    border-radius:var(--radius-lg);
+    padding:clamp(14px,2.4vw,28px);
+    box-shadow:var(--shadow-lift);
+  }
+  .dash-bar{display:flex;align-items:center;gap:8px;padding-bottom:16px;}
+  .dash-bar .browser-dot{background:#33354A;}
+  .dash-stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+  }
+  .dash-widgets{
+    display:grid;
+    grid-template-columns:repeat(12,1fr);
+    gap:12px;
+    margin-top:12px;
+  }
+  .dash-card{
+    background:#16171F;
+    border:1px solid #2A2C3B;
+    border-radius:14px;
+    padding:16px;
+    color:#E7E8F0;
+  }
+  .dash-card-label{font-size:.72rem;color:#8A8DA6;font-family:var(--font-mono);}
+  .dash-card-value{font-family:var(--font-display);font-weight:700;font-size:1.7rem;margin-top:6px;}
+  .dash-card-sub{font-size:.72rem;color:#5FE0A0;margin-top:4px;font-family:var(--font-mono);}
+  .dash-card h4{font-family:var(--font-display);font-size:.92rem;color:#fff;margin:0;}
+  .dash-card-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;}
+  .dash-card-head span{font-size:.7rem;color:#6C6F86;font-family:var(--font-mono);}
+
+  .w-time{grid-column:span 6;}
+  .w-tabs{grid-column:span 3;}
+  .w-notes{grid-column:span 3;}
+  .w-actions{grid-column:span 7;}
+  .w-summary{grid-column:span 5;}
+
+  /* donut chart */
+  .donut-row{display:flex;align-items:center;gap:20px;}
+  .donut-wrap{position:relative;flex:none;width:132px;height:132px;}
+  .donut-center{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+  }
+  .donut-center b{font-family:var(--font-display);font-size:1.35rem;color:#fff;}
+  .donut-center span{font-size:.65rem;color:#8A8DA6;font-family:var(--font-mono);}
+  .donut-legend{flex:1;display:flex;flex-direction:column;gap:9px;min-width:0;}
+  .legend-row{display:flex;align-items:flex-start;gap:8px;}
+  .legend-dot{width:9px;height:9px;border-radius:3px;margin-top:4px;flex:none;}
+  .legend-text{min-width:0;flex:1;}
+  .legend-title{display:flex;justify-content:space-between;gap:8px;font-size:.82rem;font-weight:600;color:#EDEEF5;}
+  .legend-value{font-family:var(--font-mono);font-size:.75rem;color:#B7B9CC;white-space:nowrap;}
+  .legend-context{font-size:.72rem;color:#71748C;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+  /* grouped tabs / pinned notes lists */
+  .tab-row{
+    display:flex;align-items:center;gap:8px;
+    padding:7px 0;border-top:1px solid #21232F;
+  }
+  .tab-row:first-of-type{border-top:none;}
+  .tab-row .legend-dot{margin-top:0;}
+  .tab-row-name{font-size:.82rem;color:#DCDDE7;flex:1;}
+  .tab-row-count{font-family:var(--font-mono);font-size:.72rem;color:#8A8DA6;background:#1D1F2B;padding:1px 8px;border-radius:999px;}
+
+  .dash-note{
+    background:#1D1F2B;border:1px solid #2A2C3B;border-radius:10px;
+    padding:10px 12px;margin-top:8px;
+  }
+  .dash-note:first-of-type{margin-top:0;}
+  .dash-note-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .dash-note b{font-size:.82rem;color:#fff;font-weight:600;}
+  .dash-note span{font-size:.74rem;color:#8A8DA6;display:block;margin-top:2px;}
+  .tag{
+    font-family:var(--font-mono);
+    font-size:.64rem;
+    color:#C9CBE0;
+    background:#2A2C3B;
+    padding:2px 8px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+
+  /* action items */
+  .action-item{
+    border-top:1px solid #21232F;
+    padding:11px 0;
+  }
+  .action-item:first-of-type{padding-top:0;border-top:none;}
+  .action-item-row{display:flex;align-items:flex-start;gap:10px;}
+  .action-status{
+    width:18px;height:18px;border-radius:50%;flex:none;margin-top:2px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:.62rem;font-weight:700;
+  }
+  .status-done{background:#1B3A2C;color:#5FE0A0;}
+  .status-progress{background:#332B14;color:#F0C24B;}
+  .status-pending{background:#3A2020;color:#F0707E;}
+  .action-body{flex:1;min-width:0;}
+  .action-title-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+  .action-title{font-size:.86rem;font-weight:600;color:#EDEEF5;}
+  .action-title.is-done{color:#8A8DA6;text-decoration:line-through;text-decoration-color:#4A4D60;}
+  .action-note{font-size:.78rem;color:#8A8DA6;margin-top:3px;}
+  .ai-suggestion{
+    margin-top:7px;
+    background:#1D1F2B;
+    border:1px solid #33283F;
+    border-left:2px solid #8B5CF6;
+    border-radius:0 8px 8px 0;
+    padding:8px 10px;
+  }
+  .ai-suggestion-label{
+    font-family:var(--font-mono);font-size:.62rem;letter-spacing:.06em;
+    color:#B79CF0;font-weight:600;
+  }
+  .ai-suggestion p{font-size:.78rem;color:#C9CBE0;margin-top:3px;line-height:1.4;}
+
+  /* today's summary */
+  .summary-block{margin-top:14px;}
+  .summary-block:first-of-type{margin-top:0;}
+  .summary-label{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.05em;color:#71748C;text-transform:uppercase;margin-bottom:7px;}
+  .summary-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px;}
+  .summary-list li{font-size:.8rem;color:#D6D7E4;line-height:1.4;padding-left:16px;position:relative;}
+  .summary-list.achieve li::before{content:"✓";position:absolute;left:0;color:#5FE0A0;font-weight:700;}
+  .summary-list.suggest li::before{content:"→";position:absolute;left:0;color:#B79CF0;font-weight:700;}
+
+  @media (max-width:1000px){
+    .dash-widgets{grid-template-columns:1fr;}
+    .w-time,.w-tabs,.w-notes,.w-actions,.w-summary{grid-column:span 1;}
+  }
+  @media (max-width:640px){
+    .dash-stats{grid-template-columns:repeat(2,1fr);}
+    .donut-row{flex-direction:column;align-items:flex-start;}
+  }
+
+  /* ---------- TECH / PRIVACY ---------- */
+  .strip{
+    display:grid;
+    grid-template-columns:1.2fr 1fr;
+    gap:var(--space-5);
+    align-items:start;
+  }
+  .strip-label{
+    font-family:var(--font-mono);
+    font-size:.72rem;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-bottom:.8rem;
+  }
+  .pill-row{display:flex;flex-wrap:wrap;gap:.5rem;}
+  .pill{
+    font-size:.82rem;
+    padding:6px 13px;
+    border-radius:999px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    color:var(--ink-soft);
+  }
+  @media (max-width:760px){ .strip{grid-template-columns:1fr;} }
+
+  /* ---------- WAITLIST ---------- */
+  .waitlist{
+    text-align:center;
+    max-width:560px;
+    margin:0 auto;
+  }
+  .waitlist h2{font-size:clamp(1.9rem,3.6vw,2.6rem);}
+  .waitlist p{color:var(--ink-soft);margin-top:var(--space-2);}
+  .waitlist-form{
+    display:flex;gap:.6rem;
+    margin-top:var(--space-4);
+    max-width:420px;
+    margin-inline:auto;
+  }
+  .waitlist-form input{
+    flex:1;
+    padding:12px 16px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    font-family:var(--font-body);
+    font-size:.92rem;
+    background:var(--panel);
+    color:var(--ink);
+  }
+  .waitlist-form input:focus{outline:2px solid var(--brand);outline-offset:1px;}
+  .waitlist-note{font-size:.78rem;color:var(--ink-faint);margin-top:.9rem;}
+  .waitlist-success{
+    display:none;
+    margin-top:var(--space-4);
+    background:var(--brand-soft);
+    color:var(--brand);
+    border-radius:999px;
+    padding:11px 20px;
+    font-size:.9rem;
+    font-weight:600;
+  }
+
+  @media (max-width:520px){ .waitlist-form{flex-direction:column;} }
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    border-top:1px solid var(--line);
+    padding-block:var(--space-5);
+  }
+  .footer-inner{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    flex-wrap:wrap;
+    gap:var(--space-4);
+  }
+  .footer-tag{color:var(--ink-soft);font-size:.88rem;margin-top:.5rem;max-width:260px;}
+  .footer-links{display:flex;gap:var(--space-4);list-style:none;margin:0;padding:0;}
+  .footer-links a{text-decoration:none;color:var(--ink-soft);font-size:.88rem;}
+  .footer-links a:hover{color:var(--ink);}
+  .footer-bottom{
+    margin-top:var(--space-4);
+    padding-top:var(--space-3);
+    border-top:1px solid var(--line);
+    font-size:.76rem;
+    color:var(--ink-faint);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:.5rem;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .chip{transition:none;}
+    html{scroll-behavior:auto;}
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav-inner">
+    <a href="#top" class="brand">
+      <svg class="brand-mark" viewBox="0 0 26 26" fill="none">
+        <rect x="1" y="6" width="8" height="17" rx="2.5" fill="#2F6FED"/>
+        <rect x="10.5" y="1" width="8" height="22" rx="2.5" fill="#4438F2"/>
+        <rect x="20" y="9" width="5" height="14" rx="2.2" fill="#8B5CF6"/>
+      </svg>
+      Harbor
+      <span class="badge-dev" data-en="Concept preview" data-zh="概念预览">概念预览</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#problem" data-en="Product" data-zh="产品">产品</a></li>
+      <li><a href="#how-it-works" data-en="How it works" data-zh="工作原理">工作原理</a></li>
+      <li><a href="#vision" data-en="Vision" data-zh="愿景">愿景</a></li>
+      <li><a href="#dashboard" data-en="Dashboard" data-zh="工作台">工作台</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="lang-toggle" id="langToggle" type="button">EN</button>
+      <a href="#waitlist" class="btn btn-primary" data-en="Join waitlist" data-zh="加入候补">加入候补</a>
+    </div>
+  </div>
+</nav>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-blobs" aria-hidden="true">
+      <div class="blob" style="width:340px;height:340px;top:-80px;left:6%;background:var(--cat-research);"></div>
+      <div class="blob" style="width:280px;height:280px;top:20px;right:8%;background:var(--cat-ai);"></div>
+      <div class="blob" style="width:260px;height:260px;bottom:-60px;left:38%;background:var(--cat-work);"></div>
+    </div>
+    <div class="wrap hero-inner">
+      <span class="eyebrow" data-en="AI Tab &amp; Context Manager" data-zh="AI 标签页与上下文管理器">AI 标签页与上下文管理器</span>
+      <h1>
+        <span class="line accent" data-en="A calm harbor" data-zh="为你的满屏标签页">为你的满屏标签页</span>
+        <span class="line" data-en="for your open tabs." data-zh="建一座安静的港湾">建一座安静的港湾</span>
+      </h1>
+      <p class="hero-sub" data-en="Harbor reads, groups, and organizes every tab across every window with AI — then turns that context into a workspace that helps run your day." data-zh="Harbor 用 AI 自动阅读、归类、整理你所有窗口中的标签页，并把这些信息变成帮你管理一整天的智能工作台。">Harbor 用 AI 自动阅读、归类、整理你所有窗口中的标签页，并把这些信息变成帮你管理一整天的智能工作台。</p>
+      <div class="hero-ctas">
+        <a href="#waitlist" class="btn btn-primary" data-en="Join the waitlist" data-zh="加入候补名单">加入候补名单</a>
+        <a href="#how-it-works" class="btn btn-ghost" data-en="See how it works ↓" data-zh="查看工作原理 ↓">查看工作原理 ↓</a>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat">
+          <div class="stat-value">5</div>
+          <div class="stat-label" data-en="groups from 40+ tabs" data-zh="从 40+ 标签页归纳出的分组">从 40+ 标签页归纳出的分组</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">&lt;10s</div>
+          <div class="stat-label" data-en="to organize everything" data-zh="完成整理的耗时">完成整理的耗时</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">0</div>
+          <div class="stat-label" data-en="manual clicks needed" data-zh="需要的手动操作">需要的手动操作</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <div class="hero-stage is-scattered" id="heroStage">
+        <div class="stage-col">
+          <div class="stage-col-label" data-en="RESEARCH" data-zh="研究">研究</div>
+          <div class="chip"><span class="chip-dot" style="background:var(--cat-research);"></span><span class="chip-label">arxiv.org</span></div>
+          <div class="chip"><span class="chip-dot" style="background:var(--cat-research);"></span><span class="chip-label">openai.com</span></div>
+          <div class="chip"><span class="chip-dot" style="background:var(--cat-research);"></span><span class="chip-label">paperswithcode.com</span></div>
+        </div>
+        <div class="stage-col">
+          <div class="stage-col-label" data-en="WORK" data-zh="工作">工作</div>
+          <div class="chip"><span class="chip-dot" style="background:var(--cat-work);"></span><span class="chip-label">docs.google.com</span></div>
+          <div class="chip"><span class="chip-dot" style="background:var(--cat-work);"></span><span class="chip-label">outlook.office.com</span></div>
+          <div class="chip"><span class="chip-dot" style="background:var(--cat-work);"></span><span class="chip-label" data-en="team dashboard" data-zh="团队看板">团队看板</span></div>
+        </div>
+        <div class="stage-col">
+          <div class="stage-col-label" data-en="AI &amp; TOOLS" data-zh="AI 与工具">AI 与工具</div>
+          <div class="chip"><span class="chip-dot" style="background:var(--cat-ai);"></span><span class="chip-label">chat.openai.com</span></div>
+          <div class="chip"><span class="chip-dot" style="background:var(--cat-ai);"></span><span class="chip-label">notion.so</span></div>
+          <div class="chip"><span class="chip-dot" style="background:var(--cat-ai);"></span><span class="chip-label">figma.com</span></div>
+        </div>
+        <div class="stage-col">
+          <div class="stage-col-label" data-en="SHOPPING" data-zh="购物">购物</div>
+          <div class="chip"><span class="chip-dot" style="background:var(--cat-shop);"></span><span class="chip-label">amazon.com</span></div>
+          <div class="chip"><span class="chip-dot" style="background:var(--cat-shop);"></span><span class="chip-label">bestbuy.com</span></div>
+        </div>
+        <div class="stage-col">
+          <div class="stage-col-label" data-en="ENTERTAINMENT" data-zh="娱乐">娱乐</div>
+          <div class="chip"><span class="chip-dot" style="background:var(--cat-ent);"></span><span class="chip-label">youtube.com</span></div>
+          <div class="chip"><span class="chip-dot" style="background:var(--cat-ent);"></span><span class="chip-label">netflix.com</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEM -->
+  <section id="problem">
+    <div class="wrap">
+      <div class="section-head center">
+        <span class="eyebrow" data-en="The problem" data-zh="问题所在">问题所在</span>
+        <h2 data-en="Forty tabs open. Zero idea what you were doing." data-zh="开着四十个标签页，却想不起自己在做什么。">开着四十个标签页，却想不起自己在做什么。</h2>
+        <p data-en="Every context switch costs focus. Every new window buries the last one. The browser was never built to remember for you." data-zh="每一次切换窗口，都会打断专注；每打开一个新窗口，上一个就被埋没。浏览器从来不是为「记住你」而设计的。">每一次切换窗口，都会打断专注；每打开一个新窗口，上一个就被埋没。浏览器从来不是为「记住你」而设计的。</p>
+      </div>
+      <div class="grid-3">
+        <div class="problem-card">
+          <div class="problem-num">01</div>
+          <h3 data-en="Context, lost" data-zh="上下文丢失">上下文丢失</h3>
+          <p data-en="Switch windows and the thread of what you were thinking disappears with it." data-zh="切换窗口的一瞬间，你脑海里的思路也跟着消失了。">切换窗口的一瞬间，你脑海里的思路也跟着消失了。</p>
+        </div>
+        <div class="problem-card">
+          <div class="problem-num">02</div>
+          <h3 data-en="Time, unaccounted" data-zh="时间去向不明">时间去向不明</h3>
+          <p data-en="You can't say where the last three hours went, or what you actually finished." data-zh="说不清过去三个小时花在了哪里，也说不清到底完成了什么。">说不清过去三个小时花在了哪里，也说不清到底完成了什么。</p>
+        </div>
+        <div class="problem-card">
+          <div class="problem-num">03</div>
+          <h3 data-en="Tidying, manual" data-zh="整理全靠手动">整理全靠手动</h3>
+          <p data-en="Bookmark folders and closing tabs one by one don't scale past a handful of projects." data-zh="书签文件夹和一个个关标签页的方式，项目一多就完全跟不上。">书签文件夹和一个个关标签页的方式，项目一多就完全跟不上。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MVP WORKFLOW -->
+  <section id="how-it-works" class="section-alt">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow" data-en="MVP · Shipping first" data-zh="MVP · 率先上线">MVP · 率先上线</span>
+        <h2 data-en="Step one: a browser that cleans up after itself." data-zh="第一步：让浏览器学会自己收拾。">第一步：让浏览器学会自己收拾。</h2>
+        <p data-en="Harbor's first release focuses on one job, done well: turning tab chaos into organized, labeled groups — automatically." data-zh="Harbor 的第一个版本只专注做好一件事：把混乱的标签页，自动变成清晰、带标签的分组。">Harbor 的第一个版本只专注做好一件事：把混乱的标签页，自动变成清晰、带标签的分组。</p>
+      </div>
+
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-num">1</div>
+          <h3 data-en="Capture tabs" data-zh="捕获标签页">捕获标签页</h3>
+          <p data-en="Harbor collects every open tab from every window, in the background." data-zh="Harbor 在后台自动收集你所有窗口里打开的标签页。">Harbor 在后台自动收集你所有窗口里打开的标签页。</p>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">2</div>
+          <h3 data-en="Analyze &amp; understand" data-zh="分析与理解">分析与理解</h3>
+          <p data-en="AI reads each tab's title, URL, and content preview to understand what it is." data-zh="AI 读取每个标签页的标题、网址与内容摘要，理解它到底是什么。">AI 读取每个标签页的标题、网址与内容摘要，理解它到底是什么。</p>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">3</div>
+          <h3 data-en="Group &amp; classify" data-zh="分组与归类">分组与归类</h3>
+          <p data-en="Tabs cluster into topics — research, work, tools, shopping — auto-labeled." data-zh="标签页被自动聚类成主题——研究、工作、工具、购物等，并自动打上标签。">标签页被自动聚类成主题——研究、工作、工具、购物等，并自动打上标签。</p>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">4</div>
+          <h3 data-en="Auto-organize" data-zh="自动整理">自动整理</h3>
+          <p data-en="Related tabs move to the right window, or a new one is created for them." data-zh="相关标签页会被移动到合适的窗口，或为它们新建一个窗口。">相关标签页会被移动到合适的窗口，或为它们新建一个窗口。</p>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">5</div>
+          <h3 data-en="Summarize" data-zh="生成摘要">生成摘要</h3>
+          <p data-en="A short summary, key takeaways, and next steps for each group, on request." data-zh="还能为每个分组生成简短摘要、关键要点与后续建议。">还能为每个分组生成简短摘要、关键要点与后续建议。</p>
+        </div>
+      </div>
+
+      <div class="trigger-row">
+        <div class="trigger-item">
+          <div class="trigger-ico">⌨</div>
+          <div>
+            <div class="trigger-title" data-en="Keyboard shortcut" data-zh="快捷键">快捷键</div>
+            <div class="trigger-sub">Alt + Shift + O</div>
+          </div>
+        </div>
+        <div class="trigger-arrow">/</div>
+        <div class="trigger-item">
+          <div class="trigger-ico">▣</div>
+          <div>
+            <div class="trigger-title" data-en="Extension icon" data-zh="浏览器插件">浏览器插件</div>
+            <div class="trigger-sub" data-en="one click to organize" data-zh="点击图标即可整理">点击图标即可整理</div>
+          </div>
+        </div>
+        <div class="trigger-arrow">/</div>
+        <div class="trigger-item">
+          <div class="trigger-ico">◔</div>
+          <div>
+            <div class="trigger-title" data-en="Voice command" data-zh="语音指令">语音指令</div>
+            <div class="trigger-sub" data-en='"Organize my tabs"' data-zh='"整理我的标签页"'>"整理我的标签页"</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-banner">
+        <h3 data-en="Clean. Organized. Focused." data-zh="清爽、有序、专注。">清爽、有序、专注。</h3>
+        <p data-en="SAVE TIME · REDUCE COGNITIVE LOAD · FOCUS ON WHAT MATTERS" data-zh="节省时间 · 减少认知负担 · 专注真正重要的事">节省时间 · 减少认知负担 · 专注真正重要的事</p>
+      </div>
+
+      <!-- Example result mockup -->
+      <div class="browser-frame">
+        <div class="browser-bar">
+          <span class="browser-dot"></span><span class="browser-dot"></span><span class="browser-dot"></span>
+          <span class="browser-addr" data-en="harbor.app/example-result" data-zh="harbor.app/示例结果">harbor.app/示例结果</span>
+        </div>
+        <div class="result-groups">
+          <div class="result-group">
+            <div class="result-group-head">
+              <span class="chip-dot" style="background:var(--cat-research);"></span>
+              <span data-en="Research" data-zh="研究">研究</span>
+              <span class="result-count">12</span>
+            </div>
+            <div class="result-tab-item"><b>arxiv.org</b> — Attention Is All You Need</div>
+            <div class="result-tab-item"><b>openai.com</b> — GPT-4 Technical Report</div>
+            <div class="result-tab-item"><b>paperswithcode.com</b> — RAG</div>
+          </div>
+          <div class="result-group">
+            <div class="result-group-head">
+              <span class="chip-dot" style="background:var(--cat-work);"></span>
+              <span data-en="Work" data-zh="工作">工作</span>
+              <span class="result-count">8</span>
+            </div>
+            <div class="result-tab-item"><b>docs.google.com</b> — <span data-en="Meeting notes" data-zh="会议纪要">会议纪要</span></div>
+            <div class="result-tab-item"><b>outlook.office.com</b> — <span data-en="Inbox" data-zh="收件箱">收件箱</span></div>
+            <div class="result-tab-item"><b><span data-en="Team dashboard" data-zh="团队看板">团队看板</span></b></div>
+          </div>
+          <div class="result-group">
+            <div class="result-group-head">
+              <span class="chip-dot" style="background:var(--cat-ai);"></span>
+              <span data-en="AI &amp; Tools" data-zh="AI 与工具">AI 与工具</span>
+              <span class="result-count">6</span>
+            </div>
+            <div class="result-tab-item"><b>chat.openai.com</b> — ChatGPT</div>
+            <div class="result-tab-item"><b>notion.so</b> — <span data-en="Project plan" data-zh="项目计划">项目计划</span></div>
+            <div class="result-tab-item"><b>figma.com</b> — <span data-en="UI design" data-zh="界面设计">界面设计</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VISION -->
+  <section id="vision">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow" data-en="The vision · What comes next" data-zh="愿景 · 下一步">愿景 · 下一步</span>
+        <h2 data-en="Tabs were just the beginning." data-zh="标签页，只是开始。">标签页，只是开始。</h2>
+        <p data-en="Once Harbor understands your tabs, it can understand your day — and help you spend it better." data-zh="当 Harbor 理解了你的标签页，它就能理解你的一天——并帮你更好地度过它。">当 Harbor 理解了你的标签页，它就能理解你的一天——并帮你更好地度过它。</p>
+        <div class="strip-label" style="margin-top:2rem;" data-en="Pulls context from" data-zh="上下文来源">上下文来源</div>
+        <div class="source-chips">
+          <span class="source-chip" data-en="Browser tabs" data-zh="浏览器标签页">浏览器标签页</span>
+          <span class="source-chip" data-en="Documents (PDF, Docs)" data-zh="文档（PDF、Docs）">文档（PDF、Docs）</span>
+          <span class="source-chip" data-en="Notes (Notion, Obsidian)" data-zh="笔记（Notion、Obsidian）">笔记（Notion、Obsidian）</span>
+          <span class="source-chip" data-en="Email &amp; calendar" data-zh="邮件与日历">邮件与日历</span>
+          <span class="source-chip" data-en="Chat (Slack, Teams)" data-zh="聊天记录（Slack、Teams）">聊天记录（Slack、Teams）</span>
+          <span class="source-chip" data-en="Files (Drive, local)" data-zh="文件（Drive、本地）">文件（Drive、本地）</span>
+        </div>
+      </div>
+
+      <div class="flow6">
+        <div class="flow6-step">
+          <div class="flow6-num">01</div>
+          <h3 data-en="Collect &amp; sync" data-zh="收集与同步">收集与同步</h3>
+          <p data-en="Continuously gathers data from every source, quietly, in the background." data-zh="在后台持续、安静地收集来自各个来源的数据。">在后台持续、安静地收集来自各个来源的数据。</p>
+        </div>
+        <div class="flow6-step">
+          <div class="flow6-num">02</div>
+          <h3 data-en="Understand &amp; process" data-zh="理解与处理">理解与处理</h3>
+          <p data-en="Summarization, entity extraction, topic modeling, sentiment." data-zh="摘要生成、实体提取、主题建模、情感分析。">摘要生成、实体提取、主题建模、情感分析。</p>
+        </div>
+        <div class="flow6-step">
+          <div class="flow6-num">03</div>
+          <h3 data-en="Build context &amp; memory" data-zh="构建上下文与记忆">构建上下文与记忆</h3>
+          <p data-en="Everything forms a personal knowledge graph — your context memory." data-zh="所有信息汇聚成一张个人知识图谱——你的上下文记忆。">所有信息汇聚成一张个人知识图谱——你的上下文记忆。</p>
+        </div>
+        <div class="flow6-step">
+          <div class="flow6-num">04</div>
+          <h3 data-en="Generate insights" data-zh="分析与洞察">分析与洞察</h3>
+          <p data-en="What you've done, what's pending, where your time and energy went." data-zh="发现规律：做了什么、还剩什么、时间和精力花在了哪里。">发现规律：做了什么、还剩什么、时间和精力花在了哪里。</p>
+        </div>
+        <div class="flow6-step">
+          <div class="flow6-num">05</div>
+          <h3 data-en="Optimize &amp; suggest" data-zh="优化与建议">优化与建议</h3>
+          <p data-en="Task priority, schedule, focus blocks, break reminders." data-zh="任务优先级、日程安排、专注时段与休息提醒。">任务优先级、日程安排、专注时段与休息提醒。</p>
+        </div>
+        <div class="flow6-step">
+          <div class="flow6-num">06</div>
+          <h3 data-en="Dashboard &amp; action" data-zh="工作台与行动">工作台与行动</h3>
+          <p data-en="Everything comes together in one AI workplace dashboard." data-zh="所有信息汇聚成一个 AI 工作台仪表盘。">所有信息汇聚成一个 AI 工作台仪表盘。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD PREVIEW -->
+  <section id="dashboard" class="section-alt">
+    <div class="wrap">
+      <div class="section-head center">
+        <span class="eyebrow" data-en="Preview" data-zh="预览">预览</span>
+        <h2 data-en="Your AI workplace." data-zh="你的 AI 工作台。">你的 AI 工作台。</h2>
+        <p data-en="One dashboard for today's overview, time spent per project, grouped tabs, pinned notes, context-aware action items, and an AI-written summary of your day." data-zh="一个仪表盘，汇总今日概览、每个项目的时间分布、分组标签页、置顶笔记、带上下文的待办事项，以及 AI 为你撰写的每日总结。">一个仪表盘，汇总今日概览、每个项目的时间分布、分组标签页、置顶笔记、带上下文的待办事项，以及 AI 为你撰写的每日总结。</p>
+      </div>
+
+      <div class="dash-shell">
+        <div class="dash-bar">
+          <span class="browser-dot"></span><span class="browser-dot"></span><span class="browser-dot"></span>
+        </div>
+
+        <div class="dash-stats">
+          <div class="dash-card">
+            <div class="dash-card-label" data-en="FOCUS SCORE" data-zh="专注分">专注分</div>
+            <div class="dash-card-value">87</div>
+            <div class="dash-card-sub" data-en="Great focus" data-zh="状态很好">状态很好</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-label" data-en="TASKS DONE" data-zh="已完成任务">已完成任务</div>
+            <div class="dash-card-value">12</div>
+            <div class="dash-card-sub" data-en="+20% vs yesterday" data-zh="+20% 较昨日">+20% 较昨日</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-label" data-en="TIME FOCUSED" data-zh="专注时长">专注时长</div>
+            <div class="dash-card-value">4.6h</div>
+            <div class="dash-card-sub" data-en="+1.2h vs yesterday" data-zh="+1.2h 较昨日">+1.2h 较昨日</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-label" data-en="PRODUCTIVITY" data-zh="效率">效率</div>
+            <div class="dash-card-value">92%</div>
+            <div class="dash-card-sub" data-en="Excellent" data-zh="非常出色">非常出色</div>
+          </div>
+        </div>
+
+        <div class="dash-widgets">
+
+          <!-- Time distribution donut, broken down by task / project -->
+          <div class="dash-card w-time">
+            <div class="dash-card-head">
+              <h4 data-en="Time distribution today" data-zh="今日时间分布">今日时间分布</h4>
+              <span data-en="8.0h tracked" data-zh="共记录 8.0 小时">共记录 8.0 小时</span>
+            </div>
+            <div class="donut-row">
+              <div class="donut-wrap">
+                <svg viewBox="0 0 120 120" width="132" height="132">
+                  <circle cx="60" cy="60" r="54" fill="none" stroke="#23252F" stroke-width="14"/>
+                  <g transform="rotate(-90 60 60)">
+                    <circle cx="60" cy="60" r="54" fill="none" stroke="#5B6EF5" stroke-width="14" stroke-dasharray="196.79 142.50" stroke-dashoffset="0"/>
+                    <circle cx="60" cy="60" r="54" fill="none" stroke="#2F9BED" stroke-width="14" stroke-dasharray="67.86 271.43" stroke-dashoffset="-196.79"/>
+                    <circle cx="60" cy="60" r="54" fill="none" stroke="#21C08C" stroke-width="14" stroke-dasharray="33.93 305.36" stroke-dashoffset="-264.65"/>
+                    <circle cx="60" cy="60" r="54" fill="none" stroke="#F0A84B" stroke-width="14" stroke-dasharray="23.75 315.54" stroke-dashoffset="-298.58"/>
+                    <circle cx="60" cy="60" r="54" fill="none" stroke="#6B7086" stroke-width="14" stroke-dasharray="16.96 322.33" stroke-dashoffset="-322.33"/>
+                  </g>
+                </svg>
+                <div class="donut-center">
+                  <b>4.6h</b>
+                  <span data-en="deep work" data-zh="深度工作">深度工作</span>
+                </div>
+              </div>
+              <div class="donut-legend">
+                <div class="legend-row">
+                  <span class="legend-dot" style="background:#5B6EF5;"></span>
+                  <div class="legend-text">
+                    <div class="legend-title"><span data-en="Deep Work" data-zh="深度工作">深度工作</span><span class="legend-value">4.6h · 58%</span></div>
+                    <div class="legend-context" data-en="RAG literature review · AI Research" data-zh="RAG 文献综述 · AI Research 项目">RAG 文献综述 · AI Research 项目</div>
+                  </div>
+                </div>
+                <div class="legend-row">
+                  <span class="legend-dot" style="background:#2F9BED;"></span>
+                  <div class="legend-text">
+                    <div class="legend-title"><span data-en="Meetings" data-zh="会议">会议</span><span class="legend-value">1.6h · 20%</span></div>
+                    <div class="legend-context" data-en="Team sync · Q3 Roadmap" data-zh="团队同步会 · Q3 路线图项目">团队同步会 · Q3 路线图项目</div>
+                  </div>
+                </div>
+                <div class="legend-row">
+                  <span class="legend-dot" style="background:#21C08C;"></span>
+                  <div class="legend-text">
+                    <div class="legend-title"><span data-en="Learning" data-zh="学习">学习</span><span class="legend-value">0.8h · 10%</span></div>
+                    <div class="legend-context" data-en="LangChain docs · AI &amp; Tools" data-zh="LangChain 文档 · AI 与工具">LangChain 文档 · AI 与工具</div>
+                  </div>
+                </div>
+                <div class="legend-row">
+                  <span class="legend-dot" style="background:#F0A84B;"></span>
+                  <div class="legend-text">
+                    <div class="legend-title"><span data-en="Admin" data-zh="行政事务">行政事务</span><span class="legend-value">0.6h · 7%</span></div>
+                    <div class="legend-context" data-en="Email &amp; scheduling" data-zh="邮件与日程安排">邮件与日程安排</div>
+                  </div>
+                </div>
+                <div class="legend-row">
+                  <span class="legend-dot" style="background:#6B7086;"></span>
+                  <div class="legend-text">
+                    <div class="legend-title"><span data-en="Other" data-zh="其他">其他</span><span class="legend-value">0.4h · 5%</span></div>
+                    <div class="legend-context" data-en="Breaks &amp; misc" data-zh="休息与杂项">休息与杂项</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Grouped tabs -->
+          <div class="dash-card w-tabs">
+            <div class="dash-card-head">
+              <h4 data-en="Grouped tabs" data-zh="已分组标签页">已分组标签页</h4>
+            </div>
+            <div class="tab-row">
+              <span class="legend-dot" style="background:var(--cat-research);"></span>
+              <span class="tab-row-name" data-en="Research" data-zh="研究">研究</span>
+              <span class="tab-row-count">12</span>
+            </div>
+            <div class="tab-row">
+              <span class="legend-dot" style="background:var(--cat-work);"></span>
+              <span class="tab-row-name" data-en="Work" data-zh="工作">工作</span>
+              <span class="tab-row-count">8</span>
+            </div>
+            <div class="tab-row">
+              <span class="legend-dot" style="background:var(--cat-ai);"></span>
+              <span class="tab-row-name" data-en="AI &amp; Tools" data-zh="AI 与工具">AI 与工具</span>
+              <span class="tab-row-count">6</span>
+            </div>
+            <div class="tab-row">
+              <span class="legend-dot" style="background:var(--cat-shop);"></span>
+              <span class="tab-row-name" data-en="Shopping" data-zh="购物">购物</span>
+              <span class="tab-row-count">5</span>
+            </div>
+            <div class="tab-row">
+              <span class="legend-dot" style="background:var(--cat-ent);"></span>
+              <span class="tab-row-name" data-en="Entertainment" data-zh="娱乐">娱乐</span>
+              <span class="tab-row-count">4</span>
+            </div>
+          </div>
+
+          <!-- Pinned notes -->
+          <div class="dash-card w-notes">
+            <div class="dash-card-head">
+              <h4 data-en="Pinned notes" data-zh="置顶笔记">置顶笔记</h4>
+            </div>
+            <div class="dash-note">
+              <div class="dash-note-head">
+                <b data-en="Interview prep" data-zh="面试准备">面试准备</b>
+                <span class="tag" data-en="Hiring" data-zh="Hiring">Hiring</span>
+              </div>
+              <span data-en="Key frameworks and questions" data-zh="核心框架与问题清单">核心框架与问题清单</span>
+            </div>
+            <div class="dash-note">
+              <div class="dash-note-head">
+                <b data-en="Project plan" data-zh="项目计划">项目计划</b>
+                <span class="tag" data-en="Q3 Roadmap" data-zh="Q3 路线图">Q3 路线图</span>
+              </div>
+              <span data-en="Milestones and deliverables" data-zh="里程碑与交付物">里程碑与交付物</span>
+            </div>
+          </div>
+
+          <!-- Action items with project context + AI suggestions -->
+          <div class="dash-card w-actions">
+            <div class="dash-card-head">
+              <h4 data-en="Action items" data-zh="待办事项">待办事项</h4>
+              <span data-en="With context from today" data-zh="结合今日活动">结合今日活动</span>
+            </div>
+
+            <div class="action-item">
+              <div class="action-item-row">
+                <span class="action-status status-done">✓</span>
+                <div class="action-body">
+                  <div class="action-title-row">
+                    <span class="action-title is-done" data-en="Finish RAG literature review" data-zh="完成 RAG 文献综述">完成 RAG 文献综述</span>
+                    <span class="tag" data-en="AI Research" data-zh="AI Research">AI Research</span>
+                  </div>
+                  <div class="action-note" data-en="Completed today, 2.1h logged" data-zh="今日完成，累计投入 2.1 小时">今日完成，累计投入 2.1 小时</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="action-item">
+              <div class="action-item-row">
+                <span class="action-status status-progress">½</span>
+                <div class="action-body">
+                  <div class="action-title-row">
+                    <span class="action-title" data-en="Draft Q3 roadmap proposal" data-zh="撰写 Q3 路线图提案">撰写 Q3 路线图提案</span>
+                    <span class="tag" data-en="Q3 Roadmap" data-zh="Q3 路线图">Q3 路线图</span>
+                  </div>
+                  <div class="action-note" data-en="65% complete — up from 40% yesterday" data-zh="已完成 65%，较昨日提升 25%">已完成 65%，较昨日提升 25%</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="action-item">
+              <div class="action-item-row">
+                <span class="action-status status-pending">!</span>
+                <div class="action-body">
+                  <div class="action-title-row">
+                    <span class="action-title" data-en="Reply to design feedback thread" data-zh="回复设计反馈讨论">回复设计反馈讨论</span>
+                    <span class="tag" data-en="Website Redesign" data-zh="Website Redesign">Website Redesign</span>
+                  </div>
+                  <div class="action-note" data-en="No time logged today" data-zh="今日未投入任何时间">今日未投入任何时间</div>
+                  <div class="ai-suggestion">
+                    <div class="ai-suggestion-label" data-en="AI SUGGESTION" data-zh="AI 建议">AI 建议</div>
+                    <p data-en="No time logged on this for 2 days. Your focus is highest 10:00–12:00 — consider blocking that slot tomorrow." data-zh="这项任务已连续 2 天没有投入时间。你 10:00–12:00 的专注度最高，建议明天把这个时段留给它。">这项任务已连续 2 天没有投入时间。你 10:00–12:00 的专注度最高，建议明天把这个时段留给它。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="action-item">
+              <div class="action-item-row">
+                <span class="action-status status-done">✓</span>
+                <div class="action-body">
+                  <div class="action-title-row">
+                    <span class="action-title is-done" data-en="Prepare interview questions" data-zh="准备面试问题">准备面试问题</span>
+                    <span class="tag" data-en="Hiring" data-zh="Hiring">Hiring</span>
+                  </div>
+                  <div class="action-note" data-en="Completed today, 0.5h logged" data-zh="今日完成，累计投入 0.5 小时">今日完成，累计投入 0.5 小时</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Today's summary: achievements + AI suggestions -->
+          <div class="dash-card w-summary">
+            <div class="dash-card-head">
+              <h4 data-en="Today's summary (AI)" data-zh="今日总结（AI）">今日总结（AI）</h4>
+            </div>
+
+            <div class="summary-block">
+              <div class="summary-label" data-en="Achievements" data-zh="今日成果">今日成果</div>
+              <ul class="summary-list achieve">
+                <li data-en="Completed RAG literature review — AI Research" data-zh="完成 RAG 文献综述 —— AI Research 项目">完成 RAG 文献综述 —— AI Research 项目</li>
+                <li data-en="Q3 roadmap proposal moved from 40% → 65%" data-zh="Q3 路线图提案进度从 40% 推进到 65%">Q3 路线图提案进度从 40% 推进到 65%</li>
+                <li data-en="Prepared interview questions — Hiring" data-zh="完成面试问题准备 —— Hiring 项目">完成面试问题准备 —— Hiring 项目</li>
+              </ul>
+            </div>
+
+            <div class="summary-block">
+              <div class="summary-label" data-en="Suggested for tomorrow" data-zh="明日建议">明日建议</div>
+              <ul class="summary-list suggest">
+                <li data-en="Block 10:00–12:00 for the design feedback reply — it's been waiting 2 days." data-zh="把 10:00–12:00 留给设计反馈回复，这项任务已经等了 2 天。">把 10:00–12:00 留给设计反馈回复，这项任务已经等了 2 天。</li>
+                <li data-en="Q3 roadmap is close to done — one more focused session should finish it." data-zh="Q3 路线图已接近完成，再一次专注时段大概率就能收尾。">Q3 路线图已接近完成，再一次专注时段大概率就能收尾。</li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECH / PRIVACY -->
+  <section>
+    <div class="wrap strip">
+      <div>
+        <div class="strip-label" data-en="Under the hood" data-zh="技术支撑">技术支撑</div>
+        <div class="pill-row">
+          <span class="pill">LLM (GPT-4o)</span>
+          <span class="pill">Embeddings</span>
+          <span class="pill">Vector DB</span>
+          <span class="pill">Graph DB</span>
+          <span class="pill">NLP</span>
+          <span class="pill" data-en="Machine Learning" data-zh="机器学习">机器学习</span>
+          <span class="pill" data-en="Analytics" data-zh="数据分析">数据分析</span>
+        </div>
+      </div>
+      <div>
+        <div class="strip-label" data-en="Privacy &amp; security" data-zh="隐私与安全">隐私与安全</div>
+        <div class="pill-row">
+          <span class="pill" data-en="Local-first" data-zh="本地优先">本地优先</span>
+          <span class="pill" data-en="End-to-end encryption" data-zh="端到端加密">端到端加密</span>
+          <span class="pill" data-en="You control your data" data-zh="数据由你掌控">数据由你掌控</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WAITLIST -->
+  <section id="waitlist" class="section-alt">
+    <div class="wrap waitlist">
+      <span class="eyebrow" data-en="Early access" data-zh="早期通道">早期通道</span>
+      <h2 data-en="Be first through the harbor." data-zh="第一批登陆 Harbor。">第一批登陆 Harbor。</h2>
+      <p data-en="We're building the MVP now. Leave your email and we'll invite you in as soon as it's ready — no spam, ever." data-zh="MVP 正在开发中。留下邮箱，准备好后我们第一时间邀请你——绝不打扰。">MVP 正在开发中。留下邮箱，准备好后我们第一时间邀请你——绝不打扰。</p>
+      <form class="waitlist-form" id="waitlistForm">
+        <label style="position:absolute;left:-9999px;" for="waitlistEmail" data-en="Email address" data-zh="邮箱地址">邮箱地址</label>
+        <input type="email" id="waitlistEmail" required placeholder="you@email.com" data-en-ph="you@email.com" data-zh-ph="你的邮箱地址">
+        <button type="submit" class="btn btn-primary" data-en="Join waitlist" data-zh="加入候补">加入候补</button>
+      </form>
+      <p class="waitlist-note" data-en="No spam. Just an invite when Harbor is ready." data-zh="不会有垃圾邮件，Harbor 准备好后第一时间通知你。">不会有垃圾邮件，Harbor 准备好后第一时间通知你。</p>
+      <div class="waitlist-success" id="waitlistSuccess" data-en="You're on the list — we'll be in touch." data-zh="已加入候补名单，我们会尽快联系你。">已加入候补名单，我们会尽快联系你。</div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-inner">
+      <div>
+        <a href="#top" class="brand">
+          <svg class="brand-mark" viewBox="0 0 26 26" fill="none">
+            <rect x="1" y="6" width="8" height="17" rx="2.5" fill="#2F6FED"/>
+            <rect x="10.5" y="1" width="8" height="22" rx="2.5" fill="#4438F2"/>
+            <rect x="20" y="9" width="5" height="14" rx="2.2" fill="#8B5CF6"/>
+          </svg>
+          Harbor
+        </a>
+        <p class="footer-tag" data-en="A calm harbor for your open tabs." data-zh="为你的标签页，建一座安静的港湾。">为你的标签页，建一座安静的港湾。</p>
+      </div>
+      <ul class="footer-links">
+        <li><a href="#problem" data-en="Product" data-zh="产品">产品</a></li>
+        <li><a href="#vision" data-en="Vision" data-zh="愿景">愿景</a></li>
+        <li><a href="#dashboard" data-en="Dashboard" data-zh="工作台">工作台</a></li>
+      </ul>
+    </div>
+    <div class="footer-bottom">
+      <span data-en="Harbor is a concept in development. Screens and workflows shown are illustrative." data-zh="Harbor 目前仍在概念开发阶段，页面中展示的界面与流程均为示意图。">Harbor 目前仍在概念开发阶段，页面中展示的界面与流程均为示意图。</span>
+      <span>© 2026 Harbor</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ---- Language toggle ----
+  var currentLang = 'zh';
+  var toggleBtn = document.getElementById('langToggle');
+  var emailInput = document.getElementById('waitlistEmail');
+
+  function applyLang(lang){
+    currentLang = lang;
+    document.documentElement.setAttribute('data-lang', lang);
+    document.querySelectorAll('[data-en]').forEach(function(el){
+      var val = lang === 'en' ? el.getAttribute('data-en') : el.getAttribute('data-zh');
+      if(val !== null){ el.textContent = val; }
+    });
+    if(emailInput){
+      emailInput.setAttribute('placeholder', lang === 'en' ? emailInput.getAttribute('data-en-ph') : emailInput.getAttribute('data-zh-ph'));
+    }
+    toggleBtn.textContent = lang === 'en' ? '中文' : 'EN';
+    document.documentElement.setAttribute('lang', lang === 'en' ? 'en' : 'zh');
+  }
+
+  toggleBtn.addEventListener('click', function(){
+    applyLang(currentLang === 'en' ? 'zh' : 'en');
+  });
+
+  applyLang('zh');
+
+  // ---- Hero chaos -> order signature animation ----
+  var stage = document.getElementById('heroStage');
+  var chips = stage ? stage.querySelectorAll('.chip') : [];
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function scatterChips(){
+    chips.forEach(function(chip){
+      var rx = (Math.random() * 320 - 160).toFixed(0) + 'px';
+      var ry = (Math.random() * 160 - 80).toFixed(0) + 'px';
+      var rot = (Math.random() * 50 - 25).toFixed(1) + 'deg';
+      chip.style.setProperty('--rx', rx);
+      chip.style.setProperty('--ry', ry);
+      chip.style.setProperty('--rot', rot);
+    });
+  }
+
+  if(stage){
+    if(reduceMotion){
+      stage.classList.remove('is-scattered');
+    } else {
+      scatterChips();
+      window.addEventListener('load', function(){
+        setTimeout(function(){
+          stage.classList.remove('is-scattered');
+        }, 500);
+      });
+    }
+  }
+
+  // ---- Waitlist form (front-end only demo) ----
+  var form = document.getElementById('waitlistForm');
+  var success = document.getElementById('waitlistSuccess');
+  if(form){
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      if(emailInput && emailInput.checkValidity()){
+        success.style.display = 'inline-block';
+        form.style.display = 'none';
+      }
+    });
+  }
+</script>
+
+</body>
+</html>
